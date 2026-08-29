@@ -36,7 +36,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
       - name: Download FFmpeg (Gyan build, full)
         shell: bash
@@ -83,8 +83,8 @@ jobs:
         shell: bash
         run: |
           cd dist
-          test -f "Masterbay-Setup-1.0.0-win-x64.exe" && echo "Installer found" || echo "INSTALLER MISSING"
-          ls -la *.exe 2>/dev/null
+          test -f "Masterbay-Setup-1.0.0-win-x64.exe" && echo "Installer OK" || echo "INSTALLER MISSING"
+          test -f "Masterbay-Portable-1.0.0-win-x64.exe" && echo "Portable OK" || echo "PORTABLE MISSING"
 
       - name: Generate checksums
         shell: bash
@@ -110,10 +110,7 @@ jobs:
             - **Portable:** `Masterbay-Portable-1.0.0-win-x64.exe`
 
             ### Verification
-            SHA256 checksums in `SHA256SUMS.txt`. Verify with:
-            ```
-            certutil -hashfile Masterbay-Setup-1.0.0-win-x64.exe SHA256
-            ```
+            SHA256 checksums in `SHA256SUMS.txt`.
 
             ### Note on SmartScreen
             Binaries are **unsigned** (no paid code-signing). Click "More info" → "Run anyway".
@@ -124,28 +121,3 @@ jobs:
             dist/SHA256SUMS.txt
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  deploy-worker:
-    name: Deploy Cloudflare Worker
-    runs-on: ubuntu-latest
-    if: github.ref_type == 'tag'
-    continue-on-error: true
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-
-      - name: Install Wrangler
-        run: npm install -g wrangler
-
-      - name: Deploy Worker
-        run: |
-          cd src
-          wrangler deploy
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
