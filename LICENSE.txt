@@ -1,0 +1,127 @@
+                            MASTERBAY LICENSE AGREEMENT
+                    ================================
+
+IMPORTANT: READ THIS LICENSE CAREFULLY BEFORE USING MASTERBAY.
+
+By installing, copying, or otherwise using the SOFTWARE PRODUCT, you agree to be bound by the terms of this EULA. If you do not agree to the terms of this EULA, do not install or use the SOFTWARE PRODUCT.
+
+-----------------------------------------------------------------------------
+
+1. DEFINITIONS
+
+"Software" means Masterbay, including all files, documentation, and related materials.
+
+"User" means the individual or entity that has purchased a valid license.
+
+"License Key" means the unique alphanumeric code provided upon purchase.
+
+-----------------------------------------------------------------------------
+
+2. GRANT OF LICENSE
+
+Masterbay grants you a non-exclusive, non-transferable license to use the Software as follows:
+
+   a. PERSONAL LICENSE (Default)
+      - One (1) installation per license
+      - For personal, non-commercial use only
+      - Valid for one (1) year from activation
+      - Activatable on one (1) device at a time
+
+   b. PRO LICENSE
+      - Three (3) installations per license
+      - For personal and commercial use
+      - Valid for one (1) year from activation
+      - Activatable on up to three (3) devices
+
+   c. ENTERPRISE LICENSE
+      - Unlimited installations
+      - For commercial and enterprise use
+      - Perpetual validity
+      - Includes priority support
+
+-----------------------------------------------------------------------------
+
+3. RESTRICTIONS
+
+You may NOT:
+
+   a. Reverse engineer, decompile, or disassemble the Software
+   b. Rent, lease, or lend the Software to third parties
+   c. Distribute or redistribute the Software
+   d. Modify, adapt, or create derivative works
+   e. Remove or alter any copyright notices
+   f. Use the Software for illegal purposes
+   g. Share your License Key with others
+   h. Use the Software on more devices than licensed
+
+-----------------------------------------------------------------------------
+
+4. OWNERSHIP
+
+Masterbay is protected by copyright laws and international copyright treaties, as well as other intellectual property laws and treaties.
+
+The Software is licensed, not sold. Masterbay retains all right, title, and interest in and to the Software, including all copyrights, patents, trade secrets, trademarks, and other intellectual property rights.
+
+-----------------------------------------------------------------------------
+
+5. TERMINATION
+
+This license is effective until terminated. Your rights under this license will terminate automatically without notice if you fail to comply with any of its terms. Upon termination, you must destroy all copies of the Software.
+
+-----------------------------------------------------------------------------
+
+6. WARRANTY DISCLAIMER
+
+THE SOFTWARE IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT.
+
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+-----------------------------------------------------------------------------
+
+7. PRIVACY
+
+Masterbay respects your privacy:
+   - All processing happens on your device
+   - No video files are uploaded to any server
+   - Anonymous usage statistics may be collected (opt-out available)
+   - License verification contacts doteta.com
+
+See PRIVACY.md for full details.
+
+-----------------------------------------------------------------------------
+
+8. SUPPORT
+
+Support is provided via:
+   - Email: support@doteta.com
+   - Documentation: https://doteta.com/docs
+   - Community: https://discord.gg/masterbay
+
+Response time: 48 hours for free users, 24 hours for paid users.
+
+-----------------------------------------------------------------------------
+
+9. UPDATES
+
+License holders receive free updates for the duration of their license. Updates may include:
+   - Bug fixes
+   - New features
+   - Performance improvements
+   - Security patches
+
+-----------------------------------------------------------------------------
+
+10. CONTACT
+
+For licensing inquiries:
+   Email: licensing@doteta.com
+   Website: https://doteta.com
+
+For legal notices:
+   Masterbay Legal Department
+   c/o doteta.com
+   [Your Address Here]
+
+-----------------------------------------------------------------------------
+
+END OF LICENSE AGREEMENT

@@ -1,0 +1,96 @@
+{
+  "name": "masterbay",
+  "version": "1.0.0",
+  "description": "Master short-form video for TikTok, Reels and Shorts before the platform crushes it. Upload, analyse, master up to 4K, download.",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "main": "electron/main.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "doctor": "node scripts/doctor.js",
+    "check": "node scripts/uicheck.js",
+    "e2e": "node scripts/e2e.js",
+    "build": "node scripts/build.js",
+    "build:obfuscate": "node scripts/build.js --obfuscate",
+    "build:integrity": "node scripts/build.js --integrity",
+    "electron:dev": "electron .",
+    "electron:build": "electron-builder --win nsis",
+    "electron:build:portable": "electron-builder --win portable",
+    "dist": "npm run build && npm run build:integrity && electron-builder --win nsis --win portable"
+  },
+  "build": {
+    "appId": "com.masterbay.app",
+    "productName": "Masterbay",
+    "icon": "public/icon.ico",
+    "asar": true,
+    "asarUnpack": [
+      "server.js",
+      "src/**/*",
+      "electron/main.js",
+      "electron/preload.js",
+      "electron/bin/**/*",
+      "public/**/*"
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "server.js",
+      "src/**/*",
+      "public/**/*",
+      "electron/**/*",
+      "package.json",
+      ".env.example"
+    ],
+    "extraResources": [
+      {
+        "from": "electron/bin",
+        "to": "bin",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "artifactName": "${productName}-${version}-${os}-${arch}.${ext}",
+      "sign": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "uninstallDisplayName": "Masterbay",
+      "installerIcon": "public/icon.ico",
+      "uninstallerIcon": "public/icon.ico",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
+  },
+  "devDependencies": {
+    "electron": "^35.7.5",
+    "electron-builder": "^25.1.8",
+    "png-to-ico": "^3.0.2",
+    "javascript-obfuscator": "^4.1.1"
+  },
+  "license": "MIT",
+  "allowScripts": {
+    "electron@35.7.5": true
+  }
+}

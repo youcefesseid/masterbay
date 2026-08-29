@@ -1,0 +1,17 @@
+# Large binaries (downloaded at build time)
+bin/
+electron/bin/ffmpeg.exe
+electron/bin/ffprobe.exe
+Masterbay.exe
+Masterbay.lnk
+masterbay.zip
+*.exe
+*.lnk
+*.zip
+node_modules/
+dist/
+storage/
+*.log
+.env
+build-output/
+resources/

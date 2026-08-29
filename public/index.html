@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Masterbay — تجهيز الفيديو قبل النشر</title>
+<meta name="description" content="افحص الفيديو، أصلح ما سيُخرّبه ضغط المنصّة، وصدّره بدقة تصل إلى 4K.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@300;400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/styles.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%230D1120'/><rect x='7' y='9' width='4' height='14' rx='1' fill='%23F5C451'/><rect x='14' y='13' width='4' height='10' rx='1' fill='%23F5C451' opacity='.65'/><rect x='21' y='6' width='4' height='17' rx='1' fill='%23F5C451' opacity='.85'/></svg>">
+</head>
+<body>
+
+<a class="skip" href="#main" data-i18n="skip">تجاوز إلى المحتوى</a>
+
+<header class="rack">
+  <div class="rack__brand">
+    <svg class="rack__mark" viewBox="0 0 32 24" aria-hidden="true">
+      <rect x="1" y="6" width="4" height="14" rx="1"/>
+      <rect x="8" y="10" width="4" height="10" rx="1" opacity=".6"/>
+      <rect x="15" y="2" width="4" height="18" rx="1" opacity=".85"/>
+      <rect x="22" y="8" width="4" height="12" rx="1" opacity=".45"/>
+    </svg>
+    <span class="rack__name">Masterbay</span>
+  </div>
+
+  <div class="rack__readouts">
+    <span class="readout" title="FFmpeg build">
+      <span class="readout__k" data-i18n="engine">المحرّك</span>
+      <span class="readout__v mono" id="engineVersion">…</span>
+    </span>
+    <span class="readout">
+      <span class="readout__k" data-i18n="accel">التسريع</span>
+      <span class="readout__v mono" id="engineAccel">…</span>
+    </span>
+    <span class="readout" id="licenseReadout" title="License status">
+      <span class="readout__k" data-i18n="licenseTitle">الترخيص</span>
+      <span class="readout__v mono badge badge--offline" id="licenseBadge"></span>
+    </span>
+    <span class="readout" id="integrityReadout" title="Integrity status">
+      <span class="readout__k" data-i18n="integrityTitle">السلامة</span>
+      <span class="readout__v mono badge badge--checking" id="integrityBadge"></span>
+    </span>
+  </div>
+
+  <button class="lang" id="langToggle" type="button" aria-label="Switch language">
+    <span class="mono">EN</span>
+  </button>
+</header>
+
+<div class="banner banner--warn" id="engineWarning" hidden>
+  <strong data-i18n="engineMissing">لم يُعثر على FFmpeg</strong>
+  <span id="engineWarningText"></span>
+</div>
+
+<!-- License Modal -->
+<dialog class="modal" id="licenseModal" hidden>
+  <form method="dialog">
+    <h3 data-i18n="licenseActivate">تفعيل الترخيص</h3>
+    <p class="dim" data-i18n="licenseManage">إدارة الترخيص</p>
+    <div class="field">
+      <label data-i18n="licenseEmail">البريد الإلكتروني</label>
+      <input type="email" id="licenseEmail" required placeholder="you@example.com">
+    </div>
+    <div class="field">
+      <label data-i18n="licenseKey">مفتاح الترخيص</label>
+      <input type="text" id="licenseKey" required placeholder="MB-XXXX-XXXX-XXXX-XXXX">
+    </div>
+    <div class="modal__actions">
+      <button type="button" class="ghost" onclick="closeLicenseModal()" data-i18n="cancel">إلغاء</button>
+      <button type="button" id="licenseSubmit" class="primary" data-i18n="licenseActivate">تفعيل الترخيص</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Preview Modal -->
+<dialog class="modal preview-modal" id="previewModal" hidden>
+  <video id="previewVideo" controls muted playsinline style="max-width:100%;max-height:70vh"></video>
+  <div class="modal__actions">
+    <button type="button" onclick="closePreviewModal()" data-i18n="cancel">إلغاء</button>
+  </div>
+</dialog>
+
+<main id="main">
+
+<!-- ─────────── INTAKE ─────────── -->
+<section class="bay" id="intakeSection">
+  <div class="bay__head">
+    <h1 class="bay__title">
+      <span data-i18n="heroLine1">المنصّة ستضغط فيديوك مرّة ثانية.</span>
+      <em data-i18n="heroLine2">جهّزه ليصمد.</em>
+    </h1>
+    <p class="bay__sub" data-i18n="heroSub">
+      كل منصّة تعيد ترميز ما ترفعه. حجم الضرر يعتمد كلّياً على ما إذا كان ملفك يطابق ما يتوقّعه مُرمّزها.
+      هذه الأداة تقيس ملفك، تشرح ما سيُتلَف فيه، ثم تُخرجه بمواصفات صحيحة حتى دقّة 4K.
+    </p>
+  </div>
+
+  <div class="features">
+    <div class="feature">
+      <div class="feature__icon">🎯</div>
+      <div class="feature__title" data-i18n="feature1Title">تحليل ذكي</div>
+      <div class="feature__desc" data-i18n="feature1Desc">يفحص الفيديو ويقيس جودته التقنية بدقة</div>
+    </div>
+    <div class="feature">
+      <div class="feature__icon">⚡</div>
+      <div class="feature__title" data-i18n="feature2Title">معالجة احترافية</div>
+      <div class="feature__desc" data-i18n="feature2Desc">فلتر متقدم + ترميز عالي الجودة</div>
+    </div>
+    <div class="feature">
+      <div class="feature__icon">🎬</div>
+      <div class="feature__title" data-i18n="feature3Title">دقة حتى 4K</div>
+      <div class="feature__desc" data-i18n="feature3Desc">يرفع الفيديو ليدعمه المنصّة بشكل أفضل</div>
+    </div>
+    <div class="feature">
+      <div class="feature__icon">🔒</div>
+      <div class="feature__title" data-i18n="feature4Title">خصوصية تامة</div>
+      <div class="feature__desc" data-i18n="feature4Desc">كل شيء على جهازك، لا يُرسل شيء</div>
+    </div>
+  </div>
+
+  <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-describedby="dropHint">
+    <input type="file" id="fileInput" accept="video/*,.mkv,.mov,.mp4,.webm,.avi,.m4v,.mts,.m2ts,.mxf" hidden>
+    <div class="dropzone__inner">
+      <svg class="dropzone__glyph" viewBox="0 0 48 40" aria-hidden="true">
+        <rect x="1" y="1" width="46" height="38" rx="4" class="g-rule"/>
+        <path d="M1 8h46M1 32h46" class="g-rule"/>
+        <path d="M6 8V1M12 8V1M18 8V1M24 8V1M30 8V1M36 8V1M42 8V1" class="g-rule"/>
+        <path d="M6 39v-7M12 39v-7M18 39v-7M24 39v-7M30 39v-7M36 39v-7M42 39v-7" class="g-rule"/>
+        <path d="M20 15v10l9-5z" class="g-fill"/>
+      </svg>
+      <p class="dropzone__lead" data-i18n="dropLead">أفلِت الفيديو هنا</p>
+      <p class="dropzone__or" id="dropHint">
+        <span data-i18n="dropOr">أو</span>
+        <button class="linkbtn" type="button" id="browseBtn" data-i18n="dropBrowse">اختر ملفاً من جهازك</button>
+      </p>
+      <p class="dropzone__meta mono" id="dropzoneMeta">MP4 · MOV · MKV · WEBM · AVI · MTS · MXF</p>
+    </div>
+    <div class="dropzone__progress" id="uploadProgress" hidden>
+      <div class="bar"><div class="bar__fill" id="uploadBar"></div></div>
+      <p class="mono" id="uploadStatus"></p>
+    </div>
+  </div>
+
+  <!-- The signal path, drawn as a path rather than described in bullets. -->
+  <ol class="path" aria-label="signal path">
+    <li class="path__node"><span class="path__dot"></span><span data-i18n="path1">المصدر</span></li>
+    <li class="path__node"><span class="path__dot"></span><span data-i18n="path2">فحص</span></li>
+    <li class="path__node"><span class="path__dot"></span><span data-i18n="path3">معالجة</span></li>
+    <li class="path__node"><span class="path__dot"></span><span data-i18n="path4">تصدير 4K</span></li>
+  </ol>
+
+  <dl class="specs">
+    <div><dt class="mono">bt709</dt><dd data-i18n="spec1">وسم لوني صريح، فلا تختلف الألوان بين الهاتف والمتصفح</dd></div>
+    <div><dt class="mono">−14 LUFS</dt><dd data-i18n="spec2">معايرة صوت مطابقة لما تفرضه المنصّات</dd></div>
+    <div><dt class="mono">faststart</dt><dd data-i18n="spec3">فهرس الملف في مقدّمته، فيبدأ العرض فوراً</dd></div>
+    <div><dt class="mono">trim</dt><dd data-i18n="spec4">قص مدّة الفيديو قبل التجهيز</dd></div>
+  </dl>
+</section>
+
+<!-- ─────────── REPORT CARD ─────────── -->
+<section class="panel" id="reportSection" hidden>
+  <div class="panel__bar">
+    <h2 class="panel__title" data-i18n="reportTitle">تقرير الفحص</h2>
+    <div class="panel__tools">
+      <span class="mono dim" id="sourceIdentity"></span>
+      <button class="ghost" type="button" id="resetBtn" data-i18n="startOver">ملف آخر</button>
+    </div>
+  </div>
+
+  <div class="report">
+    <div class="gauge">
+      <div class="gauge__dial">
+        <svg viewBox="0 0 200 148" class="gauge__svg" aria-hidden="true">
+          <g id="gaugeTicks"></g>
+          <path id="gaugeTrack" class="gauge__track" fill="none" stroke-linecap="round"/>
+          <path id="gaugeValue" class="gauge__value" fill="none" stroke-linecap="round"/>
+        </svg>
+        <div class="gauge__center">
+          <span class="gauge__num mono" id="scoreNum">—</span>
+          <span class="gauge__grade" id="scoreGrade"></span>
+        </div>
+      </div>
+      <p class="gauge__caption" id="scoreCaption"></p>
+    </div>
+
+    <div class="checks">
+      <div class="checks__legend mono">
+        <span class="tally tally--crit"><b id="tallyCrit">0</b> <span data-i18n="critical">حاجب</span></span>
+        <span class="tally tally--warn"><b id="tallyWarn">0</b> <span data-i18n="warn">تحذير</span></span>
+        <span class="tally tally--info"><b id="tallyInfo">0</b> <span data-i18n="note">ملاحظة</span></span>
+      </div>
+      <ul class="checks__list" id="checksList"></ul>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────── TARGET + CHAIN ─────────── -->
+<section class="panel" id="chainSection" hidden>
+  <div class="panel__bar">
+    <h2 class="panel__title" data-i18n="targetTitle">الهدف وسلسلة المعالجة</h2>
+    <div class="panel__tools">
+      <button class="ghost" type="button" id="autoBtn" data-i18n="applyAuto">أعِد الإعداد التلقائي</button>
+    </div>
+  </div>
+
+  <div class="targets" id="presetList" role="radiogroup" aria-label="target preset"></div>
+  <p class="targets__note" id="presetNote"></p>
+
+  <!-- Signature: the chain is the filter graph, the settings, and the progress bar. -->
+  <div class="chain" id="chain">
+    <div class="chain__sweep" id="chainSweep"></div>
+    <div class="chain__modules" id="chainModules"></div>
+  </div>
+
+  <div class="inspector" id="inspector" hidden>
+    <div class="inspector__head">
+      <h3 id="inspectorTitle"></h3>
+      <button class="ghost ghost--tiny" type="button" id="inspectorClose" aria-label="close">×</button>
+    </div>
+    <div class="inspector__body" id="inspectorBody"></div>
+  </div>
+
+  <details class="reasons" id="reuseBox">
+    <summary data-i18n="reuseTitle">إعادة نشر مقطع من محتواك أنت</summary>
+    <div class="reuse" id="reuseBody"></div>
+  </details>
+
+  <details class="reasons" id="reasonsBox">
+    <summary data-i18n="whyThese">لماذا هذه الإعدادات تحديداً؟</summary>
+    <ul id="reasonsList"></ul>
+  </details>
+
+  <div class="launch">
+    <div class="launch__estimate">
+      <span class="mono" id="targetSummary"></span>
+      <span class="dim" id="slowWarning"></span>
+    </div>
+    <button class="primary" type="button" id="startBtn">
+      <span data-i18n="start">ابدأ التجهيز</span>
+    </button>
+  </div>
+</section>
+
+<!-- ─────────── RUNNING ─────────── -->
+<section class="panel" id="runSection" hidden>
+  <div class="panel__bar">
+    <h2 class="panel__title" data-i18n="running">جارٍ التجهيز</h2>
+    <div class="panel__tools">
+      <button class="ghost" type="button" id="cancelBtn" data-i18n="cancel">إلغاء</button>
+    </div>
+  </div>
+  <div class="run">
+    <div class="run__stages" id="runStages"></div>
+    <div class="bar bar--tall"><div class="bar__fill" id="runBar"></div></div>
+    <div class="run__meters mono" id="runMeters"></div>
+  </div>
+</section>
+
+<!-- ─────────── RESULT ─────────── -->
+<section class="panel" id="resultSection" hidden>
+  <div class="panel__bar">
+    <h2 class="panel__title" data-i18n="resultTitle">النتيجة</h2>
+    <div class="panel__tools">
+      <a class="ghost" id="reportLink" download data-i18n="downloadReport">تقرير تقني</a>
+      <a class="primary primary--sm" id="downloadLink" download data-i18n="download">نزّل الفيديو</a>
+    </div>
+  </div>
+
+  <div class="verdict">
+    <div class="verdict__scores">
+      <span class="verdict__score"><b class="mono" id="beforeScore">—</b><small data-i18n="before">قبل</small></span>
+      <svg class="verdict__arrow" viewBox="0 0 40 12" aria-hidden="true"><path d="M0 6h32M26 1l6 5-6 5"/></svg>
+      <span class="verdict__score verdict__score--after"><b class="mono" id="afterScore">—</b><small data-i18n="after">بعد</small></span>
+    </div>
+    <p class="verdict__text" id="verdictText"></p>
+  </div>
+
+  <!-- Export Format Selector -->
+  <div class="export-format" id="exportFormatContainer">
+    <span class="mono dim" data-i18n="exportFormat">تنسيق التصدير</span>
+    <div class="export-format__selector" id="exportFormatSelector"></div>
+  </div>
+
+  <div class="compare" id="compare">
+    <div class="compare__stage" id="compareStage">
+      <video id="videoBefore" class="compare__vid compare__vid--before" playsinline muted preload="metadata"></video>
+      <div class="compare__clip" id="compareClip">
+        <video id="videoAfter" class="compare__vid" playsinline muted preload="metadata"></video>
+      </div>
+      <div class="compare__handle" id="compareHandle" role="slider" tabindex="0" aria-label="comparison position" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50">
+        <span class="compare__grip"></span>
+      </div>
+      <span class="compare__tag compare__tag--a mono" data-i18n="before">قبل</span>
+      <span class="compare__tag compare__tag--b mono" data-i18n="after">بعد</span>
+    </div>
+    <div class="compare__controls">
+      <button class="ghost" type="button" id="playBtn" data-i18n="play">تشغيل الاثنين</button>
+      <input type="range" id="scrub" min="0" max="1000" value="0" aria-label="scrub">
+      <span class="mono dim" id="scrubTime">0:00</span>
+      <button class="ghost" type="button" id="muteBtn" data-i18n="unmute">شغّل الصوت</button>
+    </div>
+    <p class="compare__note dim" data-i18n="compareNote">
+      المعاينة تُعرض بحجم النافذة، لا بالدقّة الكاملة. نزّل الملف لتحكم على 4K بشكل صحيح.
+    </p>
+  </div>
+
+  <table class="delta">
+    <caption data-i18n="deltaTitle">ما تغيّر فعلياً</caption>
+    <thead><tr>
+      <th data-i18n="metric">القياس</th>
+      <th data-i18n="before">قبل</th>
+      <th data-i18n="after">بعد</th>
+    </tr></thead>
+    <tbody id="deltaBody"></tbody>
+  </table>
+
+  <details class="graph">
+    <summary data-i18n="showGraph">اعرض رسم الفلاتر وأمر FFmpeg</summary>
+    <pre class="mono" id="graphText"></pre>
+    <pre class="mono" id="argvText"></pre>
+  </details>
+</section>
+
+<!-- ─────────── QUEUE ─────────── -->
+<section class="panel panel--quiet" id="queueSection" hidden>
+  <div class="panel__bar">
+    <h2 class="panel__title" data-i18n="queueTitle">المهام</h2>
+  </div>
+  <ul class="queue" id="queueList"></ul>
+</section>
+
+</main>
+
+<footer class="foot">
+  <p class="mono dim" id="footNote"></p>
+</footer>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<script src="/app.js" type="module"></script>
+<script src="/app-extensions.js" type="module"></script>
+</body>
+</html>

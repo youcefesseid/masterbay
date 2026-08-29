@@ -1,0 +1,17 @@
+{
+  "version": "2.0",
+  "timestamp": 1787976369193,
+  "hashes": {
+    "server.js": "d2a2671a806094ada501dc49b944d3aee0bdb652ba9d7763722f946b876a6aa6",
+    "src/api.js": "4d68d16969c8e62cb0b4d79578a4c3215ac9398da1b6a8f770ef085290825792",
+    "src/chain.js": "2fb303d12e6b9212d59022f28c5a162b41fd769d76c8efa585f2a2dbed4c5dd4",
+    "src/presets.js": "e280d5baaa8128bd6fca4fb67168d8515f314d56e19a8e687ffd1fbd56e506f5",
+    "src/enhance.js": "42b20c20b97ee49b9a7d27497c23117f73a62ca7aab5fb7be917505ca38cef11",
+    "src/license.js": "e3664d0b42b1377bbdb3da245c63cfc647a87ffc92f67138367f224e05023cf3",
+    "src/anti-tamper.js": "3f8397268124add706f70077cfd83b20d44bb9d852fb87d55a5d9648ae773201",
+    "public/app.js": "0189611b3aa725ec0ea73580309352c291ff800c94b3cf7121873c64abb128a2",
+    "electron/main.js": "1b5548d6892733cc87af514a5769af64e5879f4d6fc073cd20d068e081bd3b60"
+  },
+  "publicKey": "ef6cbfe4540786a4c5571a13e9207bf2102296fb11f7ec3c4208b3348b37148f",
+  "signature": "497cbb534cbc7b6b9bb5a612f3932296cd6f6a1e5ace7faee3da494bca33f01a"
+}

@@ -1,0 +1,6 @@
+name = "masterbay-license"
+main = "src/worker.js"
+compatibility_date = "2024-12-01"
+
+[vars]
+LICENSE_SECRET = "38b37ae4c4a142c643e4511222712f8fc41a95afc739073297613689b177237a"

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Masterbay - License Activation</title>
+  <link rel="stylesheet" href="/styles.css">
+  <style>
+    .license-wrap {
+      max-width: 520px;
+      margin: 80px auto;
+      padding: 40px;
+      background: var(--ink-2);
+      border: 1px solid var(--rule);
+      border-radius: 12px;
+    }
+    .license-wrap h1 {
+      margin-bottom: 8px;
+    }
+    .license-wrap p {
+      color: var(--haze);
+      margin-bottom: 24px;
+    }
+    .license-input {
+      width: 100%;
+      padding: 12px 16px;
+      background: var(--ink-3);
+      border: 1px solid var(--rule);
+      border-radius: 6px;
+      color: var(--paper);
+      font-size: 15px;
+      margin-bottom: 12px;
+      direction: ltr;
+      text-align: left;
+    }
+    .license-input:focus {
+      outline: none;
+      border-color: var(--lume);
+    }
+    .license-btn {
+      width: 100%;
+      padding: 12px;
+      background: var(--lume);
+      color: var(--ink);
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+    .license-btn:hover {
+      opacity: 0.9;
+    }
+    .license-status {
+      margin-top: 16px;
+      padding: 12px;
+      border-radius: 6px;
+      font-size: 13px;
+    }
+    .license-status.success {
+      background: rgba(95, 201, 160, 0.1);
+      color: var(--pass);
+      border: 1px solid rgba(95, 201, 160, 0.2);
+    }
+    .license-status.error {
+      background: rgba(228, 115, 95, 0.1);
+      color: var(--warn);
+      border: 1px solid rgba(228, 115, 95, 0.2);
+    }
+    .license-info {
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid var(--rule);
+      font-size: 12px;
+      color: var(--haze);
+    }
+  </style>
+</head>
+<body>
+  <div class="license-wrap">
+    <h1 data-i18n="licenseTitle">تفعيل Masterbay</h1>
+    <p data-i18n="licenseSub">أدخل مفتاح الترخيص الذي تلقيته بعد الشراء</p>
+    
+    <input 
+      type="text" 
+      id="licenseKey" 
+      class="license-input" 
+      placeholder="MB-XXXXX-XXXXX"
+      maxlength="20"
+    >
+    
+    <input 
+      type="email" 
+      id="licenseEmail" 
+      class="license-input" 
+      placeholder="email@example.com"
+      style="direction: ltr;"
+    >
+    
+    <button class="license-btn" id="activateBtn" data-i18n="activate">
+      تفعيل
+    </button>
+    
+    <div id="licenseStatus" class="license-status" hidden></div>
+    
+    <div class="license-info">
+      <p><strong data-i18n="needLicense">لا تملك ترخيصاً؟</strong></p>
+      <p data-i18n="buyAt">اشترِ على Gumroad أو Payhip</p>
+      <p data-i18n="contactSupport">تواصل مع الدعم للمساعدة</p>
+    </div>
+  </div>
+
+  <script type="module">
+    import { activateLicense, checkLicense, generateLicenseKey } from '/src/license.js';
+    
+    const statusEl = document.getElementById('licenseStatus');
+    const btn = document.getElementById('activateBtn');
+    
+    // Check existing license
+    const existing = checkLicense();
+    if (existing.valid) {
+      statusEl.textContent = `✅ مفعّل حتى ${new Date(existing.expires).toLocaleDateString('ar-EG')}`;
+      statusEl.className = 'license-status success';
+      statusEl.hidden = false;
+      btn.disabled = true;
+      btn.textContent = 'مفعّل';
+    }
+    
+    btn.addEventListener('click', async () => {
+      const key = document.getElementById('licenseKey').value.trim().toUpperCase();
+      const email = document.getElementById('licenseEmail').value.trim();
+      
+      if (!key || !email) {
+        statusEl.textContent = 'أدخل المفتاح والبريد الإلكتروني';
+        statusEl.className = 'license-status error';
+        statusEl.hidden = false;
+        return;
+      }
+      
+      btn.disabled = true;
+      btn.textContent = 'جارٍ التفعيل...';
+      
+      const result = await activateLicense(key, email);
+      
+      if (result.success) {
+        statusEl.textContent = `✅ تم التفعيل بنجاح! صالح حتى ${new Date(result.license.expires).toLocaleDateString('ar-EG')}`;
+        statusEl.className = 'license-status success';
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 1500);
+      } else {
+        statusEl.textContent = `❌ خطأ: ${result.error}`;
+        statusEl.className = 'license-status error';
+        btn.disabled = false;
+        btn.textContent = 'تفعيل';
+      }
+      
+      statusEl.hidden = false;
+    });
+  </script>
+</body>
+</html>
