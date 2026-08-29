@@ -114,6 +114,38 @@ app.on('activate', () => {
   }
 });
 
+// ── Auto-update check (GitHub Releases, no extra deps) ──
+const REPO = 'youcefesseid07/masterbay';
+const CURRENT_VERSION = '1.0.0';
+
+async function checkForUpdate() {
+  try {
+    const res = await fetch(`https://api.github.com/repos/${REPO}/releases/latest`, {
+      headers: { 'User-Agent': 'Masterbay' },
+    });
+    if (!res.ok) return;
+    const release = await res.json();
+    const latest = (release.tag_name || '').replace(/^v/, '');
+    if (!latest) return;
+
+    const [a, b, c] = latest.split('.').map(Number);
+    const [x, y, z] = CURRENT_VERSION.split('.').map(Number);
+    const newer = a > x || (a === x && b > y) || (a === x && b === y && c > z);
+    if (!newer) return;
+
+    const portable = (release.assets || []).find((a) => a.name.includes('Portable'));
+    if (mainWindow && !mainWindow.isDestroyed() && portable) {
+      mainWindow.webContents.send('update-available', {
+        version: latest,
+        url: portable.browser_download_url,
+        notes: release.body || '',
+      });
+    }
+  } catch {
+    // Network errors are non-fatal; ignore
+  }
+}
+
 for (const signal of ['SIGINT', 'SIGTERM']) {
   process.on(signal, () => {
     if (server) {
@@ -121,4 +153,9 @@ for (const signal of ['SIGINT', 'SIGTERM']) {
     }
     app.quit();
   });
+}
+
+// Check for updates a few seconds after launch (only in packaged mode)
+if (isPackaged) {
+  setTimeout(checkForUpdate, 8000);
 }

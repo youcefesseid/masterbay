@@ -16,62 +16,79 @@ permissions:
 
 env:
   NODE_VERSION: '22'
-  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
   build:
     name: Build Windows
     runs-on: windows-latest
-    timeout-minutes: 60
-    
+    timeout-minutes: 90
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-      
+
       - name: Install dependencies
         run: npm ci
-      
-      - name: Verify FFmpeg binaries
+
+      - name: Download FFmpeg (Gyan build, full)
+        shell: bash
         run: |
+          curl -L -o ffmpeg.zip "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-full.7z"
+          7z x ffmpeg.zip -obin_extract -y
+          # Copy ffmpeg.exe and ffprobe.exe into electron/bin (used by electron-builder extraResources)
+          mkdir -p electron/bin bin
+          cp bin_extract/ffmpeg-*/bin/ffmpeg.exe electron/bin/ffmpeg.exe
+          cp bin_extract/ffmpeg-*/bin/ffprobe.exe electron/bin/ffprobe.exe
+          cp electron/bin/ffmpeg.exe bin/ffmpeg.exe
+          cp electron/bin/ffprobe.exe bin/ffprobe.exe
           ls -la electron/bin/
-          ls -la bin/
-      
+
       - name: Run integrity build
         run: npm run build:integrity
-      
-      - name: Build Electron app
+
+      - name: Build NSIS installer
         run: npm run electron:build
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      
+
+      - name: Rename NSIS to documented name
+        shell: bash
+        run: |
+          mv "dist/Masterbay-1.0.0-win-x64.exe" "dist/Masterbay-Setup-1.0.0-win-x64.exe"
+          mv "dist/Masterbay-1.0.0-win-x64.exe.blockmap" "dist/Masterbay-Setup-1.0.0-win-x64.exe.blockmap" || true
+
       - name: Build portable
         run: npm run electron:build:portable
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      
+
+      - name: Rename portable to documented name
+        shell: bash
+        run: |
+          mv "dist/Masterbay-1.0.0-win-x64.exe" "dist/Masterbay-Portable-1.0.0-win-x64.exe" || true
+
       - name: Verify builds
+        shell: bash
         run: |
           ls -la dist/
-          test -f "dist/Masterbay-Setup-${{ github.ref_name }}.exe" && echo "Installer found"
-          test -f "dist/Masterbay-Portable-${{ github.ref_name }}.exe" && echo "Portable found"
-      
+          test -f "dist/Masterbay-Setup-1.0.0-win-x64.exe" && echo "Installer found"
+          test -f "dist/Masterbay-Portable-1.0.0-win-x64.exe" && echo "Portable found"
+
       - name: Generate checksums
+        shell: bash
         run: |
           cd dist
+          : > SHA256SUMS.txt
           for file in *.exe; do
-            certutil -hashfile "$file" SHA256 > "$file.sha256"
-            echo "$(cat "$file.sha256" | head -2 | tail -1)  $file" >> SHA256SUMS.txt
+            hash=$(certutil -hashfile "$file" SHA256 | sed -n '2p')
+            echo "$hash  $file" >> SHA256SUMS.txt
           done
           cat SHA256SUMS.txt
-      
+
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
@@ -79,27 +96,26 @@ jobs:
           name: Masterbay ${{ github.ref_name }}
           body: |
             ## Masterbay ${{ github.ref_name }}
-            
+
             ### Downloads
-            - **Installer** (NSIS): `Masterbay-Setup-${{ github.ref_name }}.exe` — standard install with auto-update
-            - **Portable**: `Masterbay-Portable-${{ github.ref_name }}.exe` — no admin required, runs from anywhere
-            
+            - **Installer (NSIS):** `Masterbay-Setup-1.0.0-win-x64.exe` — standard install with desktop/start-menu shortcuts
+            - **Portable:** `Masterbay-Portable-1.0.0-win-x64.exe` — no admin, runs from any folder
+
             ### Verification
-            SHA256 checksums are provided in `SHA256SUMS.txt`. Verify with:
+            SHA256 checksums in `SHA256SUMS.txt`. Verify with:
             ```
-            certutil -hashfile Masterbay-Setup-${{ github.ref_name }}.exe SHA256
+            certutil -hashfile Masterbay-Setup-1.0.0-win-x64.exe SHA256
             ```
-            
-            ### What's New
-            See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md) for details.
-            
+
+            ### Note on SmartScreen
+            The binaries are **unsigned** (no paid code-signing certificate). Windows SmartScreen may show a warning on first run. Click "More info" → "Run anyway". A false-positive submission has been filed with Microsoft.
+
             ### License
-            Requires a valid license key. Generate one at [license.YOUR_DOMAIN.workers.dev](https://license.YOUR_DOMAIN.workers.dev) or contact the author.
+            Requires a valid license key. Contact the author or use your deployed Cloudflare Worker.
           draft: false
           prerelease: false
           files: |
             dist/*.exe
-            dist/*.sha256
             dist/SHA256SUMS.txt
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -107,98 +123,23 @@ jobs:
   deploy-worker:
     name: Deploy Cloudflare Worker
     runs-on: ubuntu-latest
-    needs: build
     if: github.ref_type == 'tag'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: 'npm'
-      
+
       - name: Install Wrangler
         run: npm install -g wrangler
-      
+
       - name: Deploy Worker
         run: |
           cd src
-          wrangler deploy --env production
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-
-  deploy-pages:
-    name: Deploy Cloudflare Pages (Docs/Landing)
-    runs-on: ubuntu-latest
-    needs: build
-    if: github.ref_type == 'tag'
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-      
-      - name: Install Wrangler
-        run: npm install -g wrangler
-      
-      - name: Prepare Pages content
-        run: |
-          mkdir -p pages-build
-          cp public/index.html pages-build/
-          cp public/styles.css pages-build/
-          cp public/app.js pages-build/
-          # Create a simple landing page
-          cat > pages-build/landing.html << 'EOF'
-          <!DOCTYPE html>
-          <html lang="en">
-          <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Masterbay — Professional Video Mastering</title>
-            <link rel="stylesheet" href="styles.css">
-          </head>
-          <body>
-            <div class="hero">
-              <h1 class="hero__title">Masterbay</h1>
-              <p class="hero__sub">Professional video mastering for creators. Platform presets, loudness compliance, AI enhancement — all local, all free.</p>
-              <div class="cta-section">
-                <a href="https://github.com/${{ github.repository }}/releases/latest" class="btn btn--primary">Download Latest</a>
-              </div>
-            </div>
-            <div class="features">
-              <div class="feature">
-                <div class="feature__icon">⚡</div>
-                <h3 class="feature__title">Platform Presets</h3>
-                <p class="feature__desc">TikTok, Reels, Shorts, YouTube — one click, spec-compliant output.</p>
-              </div>
-              <div class="feature">
-                <div class="feature__icon">🔊</div>
-                <h3 class="feature__title">Loudness Compliance</h3>
-                <p class="feature__desc">True -14 LUFS with two-pass measurement. Never rejected by platforms.</p>
-              </div>
-              <div class="feature">
-                <div class="feature__icon">🤖</div>
-                <h3 class="feature__title">AI Enhancement</h3>
-                <p class="feature__desc">Optional Real-ESRGAN upscaling and faster-whisper subtitles.</p>
-              </div>
-              <div class="feature">
-                <div class="feature__icon">📊</div>
-                <h3 class="feature__title">Quality Metrics</h3>
-                <p class="feature__desc">VMAF, PSNR, SSIM built-in. Before/after comparison with wipe slider.</p>
-              </div>
-            </div>
-          </body>
-          </html>
-      
-      - name: Deploy to Pages
-        run: |
-          wrangler pages deploy pages-build --project-name=masterbay-docs --branch=main
+          wrangler deploy
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

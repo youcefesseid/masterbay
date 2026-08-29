@@ -2694,3 +2694,28 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border-radius
   padding-top: 16px;
   border-top: 1px solid var(--rule-soft);
 }
+
+/* ── Update banner ── */
+.update-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  background: linear-gradient(90deg, #1d9bf0, #0a7ac2);
+  color: #fff;
+  text-align: center;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  animation: updateSlide 0.3s ease;
+}
+.update-banner:hover { filter: brightness(1.08); }
+.update-banner span::after { content: " ⬇"; }
+@keyframes updateSlide {
+  from { transform: translateY(-100%); }
+  to { transform: translateY(0); }
+}
+[dir="rtl"] .update-banner { font-family: inherit; }

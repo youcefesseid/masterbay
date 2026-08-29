@@ -1783,6 +1783,20 @@ async function boot() {
   
   connectEvents();
   applyLanguage();
+
+  // Auto-update notification (from Electron main process)
+  if (window.electron && window.electron.onUpdateAvailable) {
+    window.electron.onUpdateAvailable((info) => {
+      const msg = lang === 'ar'
+        ? `تحديث متاح: الإصدار ${info.version}. اضغط للتنزيل.`
+        : `Update available: v${info.version}. Click to download.`;
+      const banner = document.createElement('div');
+      banner.className = 'update-banner';
+      banner.innerHTML = `<span>${msg}</span>`;
+      banner.addEventListener('click', () => window.electron.openExternal(info.url));
+      document.body.appendChild(banner);
+    });
+  }
 }
 
 boot();
