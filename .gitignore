@@ -1,17 +1,32 @@
-# Large binaries (downloaded at build time)
+# Dependencies
+node_modules/
+
+# Build output (Electron artifacts)
+dist/
+build-output/
+storage/
+resources/
+win-unpacked/
+
+# Large binaries (downloaded/placed at build time)
 bin/
 electron/bin/ffmpeg.exe
 electron/bin/ffprobe.exe
 Masterbay.exe
 Masterbay.lnk
+Uninstall Masterbay.exe
 masterbay.zip
 *.exe
 *.lnk
 *.zip
-node_modules/
-dist/
-storage/
-*.log
+
+# Secrets / local config
 .env
-build-output/
-resources/
+.env.local
+*.log
+
+# Editor / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
