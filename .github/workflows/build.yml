@@ -61,7 +61,20 @@ jobs:
         run: npm run build:integrity
 
       - name: Build NSIS installer
-        run: npm run electron:build
+        run: npm run electron:build 2>&1 | tee build-nsis.log
+        continue-on-error: true
+
+      - name: Upload NSIS log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nsis-build-log
+          path: build-nsis.log
+          if-no-files-found: ignore
+
+      - name: Show NSIS build log on failure
+        if: failure()
+        run: type build-nsis.log 2>nul || cat build-nsis.log
 
       - name: Rename NSIS artifact
         shell: bash
