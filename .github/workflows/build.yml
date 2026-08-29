@@ -38,19 +38,24 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Install FFmpeg (winget)
+      - name: Place FFmpeg binaries (from ffmpeg-static)
         shell: bash
         run: |
-          winget install --id Gyan.FFmpeg --source winget --accept-package-agreements --accept-license --silent
-          # Locate the installed binaries
-          FFMPEG_DIR=$(find "$LOCALAPPDATA/Microsoft/WinGet/Packages" -type d -name "ffmpeg-*" 2>/dev/null | head -1)
-          echo "FFMPEG_DIR=$FFMPEG_DIR"
+          FFMPEG_BIN=$(node -e "console.log(require('ffmpeg-static'))")
+          echo "ffmpeg-static at: $FFMPEG_BIN"
+          FFPROBE_BIN=$(node -e "try{console.log(require('ffprobe-static').path)}catch(e){console.log('')}")
           mkdir -p electron/bin bin
-          cp "$FFMPEG_DIR/ffmpeg-*/bin/ffmpeg.exe" electron/bin/ffmpeg.exe 2>/dev/null || cp "$FFMPEG_DIR/bin/ffmpeg.exe" electron/bin/ffmpeg.exe
-          cp "$FFMPEG_DIR/ffmpeg-*/bin/ffprobe.exe" electron/bin/ffprobe.exe 2>/dev/null || cp "$FFMPEG_DIR/bin/ffprobe.exe" electron/bin/ffprobe.exe
-          cp electron/bin/ffmpeg.exe bin/ffmpeg.exe
-          cp electron/bin/ffprobe.exe bin/ffprobe.exe
-          ls -la electron/bin/ || echo "FFMPEG INSTALL FAILED"
+          cp "$FFMPEG_BIN" electron/bin/ffmpeg.exe
+          cp "$FFMPEG_BIN" bin/ffmpeg.exe
+          if [ -n "$FFPROBE_BIN" ]; then
+            cp "$FFPROBE_BIN" electron/bin/ffprobe.exe
+            cp "$FFPROBE_BIN" bin/ffprobe.exe
+          else
+            echo "ffprobe-static not installed; copying ffmpeg as ffprobe fallback"
+            cp "$FFMPEG_BIN" electron/bin/ffprobe.exe
+            cp "$FFMPEG_BIN" bin/ffprobe.exe
+          fi
+          ls -la electron/bin/
 
       - name: Run integrity build
         run: npm run build:integrity
