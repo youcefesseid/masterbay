@@ -38,17 +38,19 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Download FFmpeg (Gyan build, full)
+      - name: Install FFmpeg (winget)
         shell: bash
         run: |
-          curl -L -o ffmpeg.7z "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-full.7z"
-          7z x ffmpeg.7z -obin_extract -y
+          winget install --id Gyan.FFmpeg --source winget --accept-package-agreements --accept-license --silent
+          # Locate the installed binaries
+          FFMPEG_DIR=$(find "$LOCALAPPDATA/Microsoft/WinGet/Packages" -type d -name "ffmpeg-*" 2>/dev/null | head -1)
+          echo "FFMPEG_DIR=$FFMPEG_DIR"
           mkdir -p electron/bin bin
-          cp bin_extract/ffmpeg-*/bin/ffmpeg.exe electron/bin/ffmpeg.exe
-          cp bin_extract/ffmpeg-*/bin/ffprobe.exe electron/bin/ffprobe.exe
+          cp "$FFMPEG_DIR/ffmpeg-*/bin/ffmpeg.exe" electron/bin/ffmpeg.exe 2>/dev/null || cp "$FFMPEG_DIR/bin/ffmpeg.exe" electron/bin/ffmpeg.exe
+          cp "$FFMPEG_DIR/ffmpeg-*/bin/ffprobe.exe" electron/bin/ffprobe.exe 2>/dev/null || cp "$FFMPEG_DIR/bin/ffprobe.exe" electron/bin/ffprobe.exe
           cp electron/bin/ffmpeg.exe bin/ffmpeg.exe
           cp electron/bin/ffprobe.exe bin/ffprobe.exe
-          ls -la electron/bin/
+          ls -la electron/bin/ || echo "FFMPEG INSTALL FAILED"
 
       - name: Run integrity build
         run: npm run build:integrity
