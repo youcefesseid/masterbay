@@ -16,6 +16,9 @@ permissions:
 
 env:
   NODE_VERSION: '22'
+  # Empty token stops electron-builder from trying to publish to GitHub itself;
+  # we publish via softprops/action-gh-release instead.
+  GH_TOKEN: ''
 
 jobs:
   build:
@@ -57,22 +60,26 @@ jobs:
           fi
           ls -la electron/bin/
 
+      - name: Derive version (strip leading v)
+        id: ver
+        shell: bash
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
       - name: Run integrity build
         run: npm run build:integrity
 
       - name: Build NSIS installer
-        run: npm run electron:build > nsis-error.txt 2>&1 || echo "NSIS_BUILD_FAILED" >> nsis-error.txt
-        continue-on-error: true
+        run: npm run electron:build
 
       - name: Rename NSIS artifact
         shell: bash
         run: |
           cd dist
-          if [ -f "Masterbay-1.0.0-win-x64.exe" ]; then
-            mv "Masterbay-1.0.0-win-x64.exe" "Masterbay-Setup-1.0.0-win-x64.exe"
+          if [ -f "Masterbay-${{ steps.ver.outputs.version }}-win-x64.exe" ]; then
+            mv "Masterbay-${{ steps.ver.outputs.version }}-win-x64.exe" "Masterbay-Setup-${{ steps.ver.outputs.version }}-win-x64.exe"
           fi
-          if [ -f "Masterbay-1.0.0-win-x64.exe.blockmap" ]; then
-            mv "Masterbay-1.0.0-win-x64.exe.blockmap" "Masterbay-Setup-1.0.0-win-x64.exe.blockmap"
+          if [ -f "Masterbay-${{ steps.ver.outputs.version }}-win-x64.exe.blockmap" ]; then
+            mv "Masterbay-${{ steps.ver.outputs.version }}-win-x64.exe.blockmap" "Masterbay-Setup-${{ steps.ver.outputs.version }}-win-x64.exe.blockmap"
           fi
 
       - name: Build portable
@@ -82,8 +89,8 @@ jobs:
         shell: bash
         run: |
           cd dist
-          if [ -f "Masterbay-1.0.0-win-x64.exe" ]; then
-            mv "Masterbay-1.0.0-win-x64.exe" "Masterbay-Portable-1.0.0-win-x64.exe"
+          if [ -f "Masterbay-${{ steps.ver.outputs.version }}-win-x64.exe" ]; then
+            mv "Masterbay-${{ steps.ver.outputs.version }}-win-x64.exe" "Masterbay-Portable-${{ steps.ver.outputs.version }}-win-x64.exe"
           fi
           ls -la
 
@@ -91,8 +98,8 @@ jobs:
         shell: bash
         run: |
           cd dist
-          test -f "Masterbay-Setup-1.0.0-win-x64.exe" && echo "Installer OK" || echo "INSTALLER MISSING"
-          test -f "Masterbay-Portable-1.0.0-win-x64.exe" && echo "Portable OK" || echo "PORTABLE MISSING"
+          test -f "Masterbay-Setup-${{ steps.ver.outputs.version }}-win-x64.exe" && echo "Installer OK" || echo "INSTALLER MISSING"
+          test -f "Masterbay-Portable-${{ steps.ver.outputs.version }}-win-x64.exe" && echo "Portable OK" || echo "PORTABLE MISSING"
 
       - name: Generate checksums
         shell: bash
@@ -114,19 +121,24 @@ jobs:
             ## Masterbay ${{ github.ref_name }}
 
             ### Downloads
-            - **Installer (NSIS):** `Masterbay-Setup-1.0.0-win-x64.exe`
-            - **Portable:** `Masterbay-Portable-1.0.0-win-x64.exe`
+            - **Installer (NSIS):** `Masterbay-Setup-${{ steps.ver.outputs.version }}-win-x64.exe`
+            - **Portable:** `Masterbay-Portable-${{ steps.ver.outputs.version }}-win-x64.exe`
 
             ### Verification
-            SHA256 checksums in `SHA256SUMS.txt`.
+            SHA256 checksums in `SHA256SUMS.txt`. Verify with:
+            ```
+            certutil -hashfile Masterbay-Setup-${{ steps.ver.outputs.version }}-win-x64.exe SHA256
+            ```
 
             ### Note on SmartScreen
-            Binaries are **unsigned** (no paid code-signing). Click "More info" → "Run anyway".
+            Binaries are **unsigned** (no paid code-signing certificate). Windows SmartScreen may warn on first run. Click "More info" → "Run anyway". A false-positive report has been filed with Microsoft.
+
+            ### License
+            Requires a valid license key. Activate with the key issued to you (generated via `scripts/generate-license.js` against your Cloudflare Worker).
           draft: false
           prerelease: false
           files: |
             dist/*.exe
             dist/SHA256SUMS.txt
-            nsis-error.txt
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
