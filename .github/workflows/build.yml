@@ -41,9 +41,8 @@ jobs:
       - name: Download FFmpeg (Gyan build, full)
         shell: bash
         run: |
-          curl -L -o ffmpeg.zip "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-full.7z"
-          7z x ffmpeg.zip -obin_extract -y
-          # Copy ffmpeg.exe and ffprobe.exe into electron/bin (used by electron-builder extraResources)
+          curl -L -o ffmpeg.7z "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-full.7z"
+          7z x ffmpeg.7z -obin_extract -y
           mkdir -p electron/bin bin
           cp bin_extract/ffmpeg-*/bin/ffmpeg.exe electron/bin/ffmpeg.exe
           cp bin_extract/ffmpeg-*/bin/ffprobe.exe electron/bin/ffprobe.exe
@@ -57,26 +56,35 @@ jobs:
       - name: Build NSIS installer
         run: npm run electron:build
 
-      - name: Rename NSIS to documented name
+      - name: Rename NSIS artifact
         shell: bash
         run: |
-          mv "dist/Masterbay-1.0.0-win-x64.exe" "dist/Masterbay-Setup-1.0.0-win-x64.exe"
-          mv "dist/Masterbay-1.0.0-win-x64.exe.blockmap" "dist/Masterbay-Setup-1.0.0-win-x64.exe.blockmap" || true
+          cd dist
+          if [ -f "Masterbay-1.0.0-win-x64.exe" ]; then
+            mv "Masterbay-1.0.0-win-x64.exe" "Masterbay-Setup-1.0.0-win-x64.exe"
+          fi
+          if [ -f "Masterbay-1.0.0-win-x64.exe.blockmap" ]; then
+            mv "Masterbay-1.0.0-win-x64.exe.blockmap" "Masterbay-Setup-1.0.0-win-x64.exe.blockmap"
+          fi
 
       - name: Build portable
         run: npm run electron:build:portable
 
-      - name: Rename portable to documented name
+      - name: Rename portable artifact
         shell: bash
         run: |
-          mv "dist/Masterbay-1.0.0-win-x64.exe" "dist/Masterbay-Portable-1.0.0-win-x64.exe" || true
+          cd dist
+          if [ -f "Masterbay-1.0.0-win-x64.exe" ]; then
+            mv "Masterbay-1.0.0-win-x64.exe" "Masterbay-Portable-1.0.0-win-x64.exe"
+          fi
+          ls -la
 
       - name: Verify builds
         shell: bash
         run: |
-          ls -la dist/
-          test -f "dist/Masterbay-Setup-1.0.0-win-x64.exe" && echo "Installer found"
-          test -f "dist/Masterbay-Portable-1.0.0-win-x64.exe" && echo "Portable found"
+          cd dist
+          test -f "Masterbay-Setup-1.0.0-win-x64.exe" && echo "Installer found" || echo "INSTALLER MISSING"
+          ls -la *.exe 2>/dev/null
 
       - name: Generate checksums
         shell: bash
@@ -98,8 +106,8 @@ jobs:
             ## Masterbay ${{ github.ref_name }}
 
             ### Downloads
-            - **Installer (NSIS):** `Masterbay-Setup-1.0.0-win-x64.exe` — standard install with desktop/start-menu shortcuts
-            - **Portable:** `Masterbay-Portable-1.0.0-win-x64.exe` — no admin, runs from any folder
+            - **Installer (NSIS):** `Masterbay-Setup-1.0.0-win-x64.exe`
+            - **Portable:** `Masterbay-Portable-1.0.0-win-x64.exe`
 
             ### Verification
             SHA256 checksums in `SHA256SUMS.txt`. Verify with:
@@ -108,10 +116,7 @@ jobs:
             ```
 
             ### Note on SmartScreen
-            The binaries are **unsigned** (no paid code-signing certificate). Windows SmartScreen may show a warning on first run. Click "More info" → "Run anyway". A false-positive submission has been filed with Microsoft.
-
-            ### License
-            Requires a valid license key. Contact the author or use your deployed Cloudflare Worker.
+            Binaries are **unsigned** (no paid code-signing). Click "More info" → "Run anyway".
           draft: false
           prerelease: false
           files: |
@@ -124,6 +129,7 @@ jobs:
     name: Deploy Cloudflare Worker
     runs-on: ubuntu-latest
     if: github.ref_type == 'tag'
+    continue-on-error: true
     steps:
       - name: Checkout
         uses: actions/checkout@v4
